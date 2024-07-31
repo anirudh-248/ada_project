@@ -113,7 +113,7 @@ st.title("ADA Project - AVL Tree")
 
 uploaded_file = st.file_uploader("Upload the input file", type="txt")
 if uploaded_file is not None:
-    content = uploaded_file.read().decode("utf-8")
+    content = uploaded_file.read().decode("utf-16")
     numbers = [int(num) for num in content.strip().split() if num.isdigit()]
     
     root = None
