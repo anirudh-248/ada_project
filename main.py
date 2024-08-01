@@ -64,16 +64,20 @@ def insert(node, data, step=None):
 
     balance = getBalance(node)
 
+    # Left-Left case
     if balance > 1 and data < node.left.data:
         return rightRotate(node), step
 
+    # Right-Right case
     if balance < -1 and data > node.right.data:
         return leftRotate(node), step
 
+    # Left-Right case
     if balance > 1 and data > node.left.data:
         node.left = leftRotate(node.left)
         return rightRotate(node), step
 
+    # Right-Left case
     if balance < -1 and data < node.right.data:
         node.right = rightRotate(node.right)
         return leftRotate(node), step
