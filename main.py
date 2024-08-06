@@ -48,17 +48,16 @@ def leftRotate(x):
 
     return y
 
-def insert(node, data, step=None):
+def insert(node, data):
     if node is None:
-        return newNode(data), step
+        return newNode(data)
 
-    step += 1
     if data < node.data:
-        node.left, step = insert(node.left, data, step)
+        node.left = insert(node.left, data)
     elif data > node.data:
-        node.right, step = insert(node.right, data, step)
+        node.right = insert(node.right, data)
     else:
-        return node, step
+        return node
 
     node.height = 1 + max(height(node.left), height(node.right))
 
@@ -66,23 +65,23 @@ def insert(node, data, step=None):
 
     # Left-Left case
     if balance > 1 and data < node.left.data:
-        return rightRotate(node), step
+        return rightRotate(node)
 
     # Right-Right case
     if balance < -1 and data > node.right.data:
-        return leftRotate(node), step
+        return leftRotate(node)
 
     # Left-Right case
     if balance > 1 and data > node.left.data:
         node.left = leftRotate(node.left)
-        return rightRotate(node), step
+        return rightRotate(node)
 
     # Right-Left case
     if balance < -1 and data < node.right.data:
         node.right = rightRotate(node.right)
-        return leftRotate(node), step
+        return leftRotate(node)
 
-    return node, step
+    return node
 
 def inOrder(root, ls):
     if root is not None:
@@ -102,6 +101,9 @@ def visualize_tree(node, graph=None):
         graph.attr('node', shape='circle')
 
     if node is not None:
+        # Add the node itself
+        graph.node(str(node.data), str(node.data))
+        
         if node.left:
             graph.edge(str(node.data), str(node.left.data))
             visualize_tree(node.left, graph)
@@ -113,41 +115,83 @@ def visualize_tree(node, graph=None):
 def custom_write(ls):
     return ', '.join(f'{item}' for item in ls)
 
-st.title("ADA Project - AVL Tree")
+st.title("AVL Tree Visualizer")
 
-uploaded_file = st.file_uploader("Upload the input file", type="txt")
-if uploaded_file is not None:
-    content = uploaded_file.read().decode("utf-8")
-    numbers = [int(num) for num in content.strip().split() if num.isdigit()]
-    
-    root = None
-    steps = []
-    step = 0
-    graph = Digraph()
-    graph.attr('node', shape='circle')
+tab1, tab2 = st.tabs(["File Upload", "Manual Entry"])
 
-    for key in numbers:
-        root, step = insert(root, key, step)
-        current_graph = visualize_tree(root, Digraph())
-        steps.append(current_graph.source)
+with tab1:
+    st.subheader("Upload AVL Tree Data")
+    uploaded_file = st.file_uploader("Upload the input file", type="txt")
+    if uploaded_file is not None:
+        content = uploaded_file.read().decode("utf-8")
+        numbers = [int(num) for num in content.strip().split() if num.isdigit()]
 
-    ino = []
-    pre = []
+        root = None
+        steps = []
 
-    inOrder(root, ino)
-    preOrder(root, pre)
+        for key in numbers:
+            root = insert(root, key)
+            current_graph = visualize_tree(root, Digraph())
+            steps.append(current_graph.source)
 
-    st.subheader("Construction of AVL tree:")
-    if steps:
-        step_index = st.slider('Step', 0, len(steps)-1, 0)
-        st.graphviz_chart(steps[step_index])
+        ino = []
+        pre = []
 
-    st.subheader("Inorder Traversal of the AVL tree:")
-    st.write(custom_write(ino))
+        inOrder(root, ino)
+        preOrder(root, pre)
 
-    st.subheader("Preorder Traversal of the AVL tree:")
-    st.write(custom_write(pre))
+        st.subheader("Construction of AVL tree:")
+        if steps:
+            step_index = st.slider('Step', 0, len(steps)-1, 0)
+            st.graphviz_chart(steps[step_index])
 
-    st.subheader("Final AVL Tree Structure:")
-    final_graph = visualize_tree(root, Digraph())
-    st.graphviz_chart(final_graph.source)
+        st.subheader("Inorder Traversal of the AVL tree:")
+        st.write(custom_write(ino))
+
+        st.subheader("Preorder Traversal of the AVL tree:")
+        st.write(custom_write(pre))
+
+        st.subheader("Final AVL Tree Structure:")
+        final_graph = visualize_tree(root, Digraph())
+        st.graphviz_chart(final_graph.source)
+
+        output_file = 'output.txt'
+        try:
+            with open(output_file, 'w') as f:
+                for item in ino:
+                    f.write(str(item)+' ')
+        except FileNotFoundError:
+            st.error(f"Error: File '{output_file}' does not exist.")
+
+with tab2:
+    st.subheader("Enter AVL Tree Data")
+    if 'root' not in st.session_state:
+        st.session_state.root = None
+        st.session_state.numbers = []
+
+    input_number = st.text_input("Enter a number:")
+    if st.button("Add Number"):
+        if input_number.isdigit():
+            number = int(input_number)
+            st.session_state.root = insert(st.session_state.root, number)
+            st.session_state.numbers.append(number)
+            st.success(f"Number {number} added.")
+        else:
+            st.error("Please enter a valid number.")
+
+    if st.session_state.root:
+        ino = []
+        pre = []
+
+        inOrder(st.session_state.root, ino)
+        preOrder(st.session_state.root, pre)
+
+        st.subheader("AVL Tree Structure:")
+        final_graph = visualize_tree(st.session_state.root, Digraph())
+        st.graphviz_chart(final_graph.source)
+
+        st.subheader("Inorder Traversal of the AVL tree:")
+        st.write(custom_write(ino))
+
+        st.subheader("Preorder Traversal of the AVL tree:")
+        st.write(custom_write(pre))
